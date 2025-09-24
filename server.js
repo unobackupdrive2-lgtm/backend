@@ -3,18 +3,45 @@ import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
+import { swaggerUi, specs } from './config/swagger.js';
 
 // Import routes
 import authRoutes from './routes/auth.js';
 import userRoutes from './routes/users.js';
 import reportRoutes from './routes/reports.js';
 import municipalityRoutes from './routes/municipalities.js';
+import statusUpdateRoutes from './routes/status-updates.js';
 
 // Load environment variables
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+/**
+ * @swagger
+ * /health:
+ *   get:
+ *     summary: Health check endpoint
+ *     tags: [System]
+ *     responses:
+ *       200:
+ *         description: Service is healthy
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: OK
+ *                 timestamp:
+ *                   type: string
+ *                   format: date-time
+ *                 service:
+ *                   type: string
+ *                   example: Setshaba Connect API
+ */
 
 // Security middleware
 app.use(helmet());
@@ -51,6 +78,12 @@ app.use(limiter);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
+// Swagger documentation
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(specs, {
+  customCss: '.swagger-ui .topbar { display: none }',
+  customSiteTitle: 'Setshaba Connect API Documentation'
+}));
+
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.json({ 
@@ -65,6 +98,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/municipalities', municipalityRoutes);
+app.use('/api/reports', statusUpdateRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {
@@ -90,6 +124,7 @@ app.use((error, req, res, next) => {
 app.listen(PORT, () => {
   console.log(`🚀 Setshaba Connect API server running on port ${PORT}`);
   console.log(`📍 Health check: http://localhost:${PORT}/health`);
+  console.log(`📚 API Documentation: http://localhost:${PORT}/docs`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
 });
 

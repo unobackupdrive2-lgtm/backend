@@ -47,6 +47,10 @@ export const createReportSchema = Joi.object({
 });
 
 export const updateReportSchema = Joi.object({
+  title: Joi.string().min(5).max(200).optional(),
+  description: Joi.string().min(10).max(2000).optional(),
+  category: Joi.string().valid('water', 'electricity', 'roads', 'waste', 'safety', 'other').optional(),
+  photo_url: Joi.string().uri().optional(),
   status: Joi.string().valid('pending', 'acknowledged', 'in_progress', 'resolved').optional(),
   assigned_official: Joi.string().uuid().optional()
 });
